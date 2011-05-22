@@ -7,5 +7,5 @@ watch( '(test|src)\/(.*)\.lisp' ) { |md|
   puts "==============================================="
   puts "#{md[0]} updated - running #{md[2]} test"
   puts "==============================================="
-  system("sh run.sh #{md[2]}")
+  system("sh run-test.sh #{md[2]}")
 }
