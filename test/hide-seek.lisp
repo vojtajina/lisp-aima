@@ -56,11 +56,32 @@
   (stress 10 (lambda ()
     (setq body (make-jinavojt-body))
     (decide body (list nil nil 'WALL)) ; should go forward
-    (case (decide body (list nil nil 'WALL))
-      ; nothing interested (no person), should turn back
-      ('TURNLEFT (assert-equal 'TURNRIGHT (decide body (list nil nil 'WALL))))
-      ('TURNRIGHT (assert-equal 'TURNLEFT (decide body (list nil nil 'WALL))))
-      (otherwise (fail_ "Should check left or right after each forw step")))))
+    (let ((decision (decide body (list NIL NIL 'WALL))))
+      (assert-true (or (eq decision 'TURNLEFT) (eq decision 'TURNRIGHT))))))
+)
+
+(define-test should-return-from-checking-or-stay-sometimes-when-free-space
+  (setq left-returns 0
+	right-returns 0
+	go-forws 0)
+  
+  (stress 20 (lambda ()
+    (setq body (make-jinavojt-body))
+    (decide body (list nil nil 'WALL)) ; should go forward
+    (let* ((decision1 (decide body (list NIL NIL 'WALL)))
+	  (decision2 (decide body (list NIL NIL 'WALL))))
+      (cond
+	((and (eq decision1 'TURNLEFT) (eq decision2 'TURNRIGHT))
+	 (incf left-returns))
+	((and (eq decision1 'TURNRIGHT) (eq decision2 'TURNLEFT))
+	 (incf right-returns))
+	((eq decision2 'FORW)
+	 (incf go-forws))
+	(T (fail_ "Should return back or go forward when heading to free space")))
+      )))
+  (assert-true (<= 1 left-returns))
+  (assert-true (<= 1 right-returns))
+  (assert-true (<= 1 go-forws))
 )
 
 (define-test should-return-from-checking-when-obstacle

@@ -33,9 +33,12 @@
 	    ('CLEAN (if (= 0 (random 2))
 	      (prog1 'TURNLEFT (set-in-action body 'BACK-RIGHT))
 	      (prog1 'TURNRIGHT (set-in-action body 'BACK-LEFT))))
-	    ('BACK-LEFT (prog1 'TURNLEFT (set-in-action body NIL)))
-	    ('BACK-RIGHT (prog1 'TURNRIGHT (set-in-action body NIL)))
-	    (otherwise (prog1 'FORW (set-in-action body 'CLEAN)))))
+	    (otherwise (if (= 0 (random 3))
+	      (prog1 'FORW (set-in-action body 'CLEAN))
+	      (case (jinavojt-body-in-action body)
+	        ('BACK-LEFT (prog1 'TURNLEFT (set-in-action body NIL)))
+		('BACK-RIGHT (prog1 'TURNRIGHT (set-in-action body NIL)))
+		(otherwise (prog1 'FORW (set-in-action body 'CLEAN))))))))
 
       ; facing to object directly
       (if (eq first-seen 'PERSON)
