@@ -10,6 +10,12 @@
 (defstructure (jinavojt-body
   (:include hs-agent-body))
   in-action ; current state of the agent
+  (map (create-map 10 10))
+)
+
+(defun create-map (x y)
+  (setq map (make-array (list x y)))
+  (values map)
 )
 
 (defun jinavojt-program (percept)
@@ -67,5 +73,52 @@
 	    (decide-see-person? (rest percept))
             (if (eq first-seen 'PERSON) T NIL))))
 
-; (run-environment (make-hs-world :max-steps 10))
+; rotate 2d orientation (heading) to left
+; (declarative - not tested)
+(defun rotate-heading-left (heading)
+  (cond
+    ((equal heading '(0 1)) '(-1 0))
+    ((equal heading '(1 0)) '(0 1))
+    ((equal heading '(0 -1)) '(1 0))
+    ((equal heading '(-1 0)) '(0 -1))))
 
+; rotate 2d orientation (heading) to right
+; (declarative - not tested)
+(defun rotate-heading-right (heading)
+  (cond
+    ((equal heading '(0 1)) '(1 0))
+    ((equal heading '(1 0)) '(0 -1))
+    ((equal heading '(0 -1)) '(-1 0))
+    ((equal heading '(-1 0)) '(0 1))))
+
+; move location one step forward in given heading (orientation)
+(defun move-location (location heading)
+  (setq location (copy-xy location))
+  (setf (xy-x location) (+ (xy-x location) (car heading)))
+  (setf (xy-y location) (+ (xy-y location) (cadr heading)))
+  (values location)
+)
+
+; next location on my left
+; location = current location
+; heading = current orientation
+(defun loc-on-left (location heading)
+  (move-location location (rotate-heading-left heading)))
+
+; next location on my right
+; location = current location
+; heading = current orientation
+(defun loc-on-right (location heading)
+  (move-location location (rotate-heading-right heading)))
+
+(defun what-is-on-left? (body)
+  (let ((map (jinavojt-body-map body))
+        (heading (jinavojt-body-heading body))
+        (loc (jinavojt-body-location body)))
+       (what-is-on-loc (loc-on-left loc heading))))
+
+(defun what-is-on-right? (body)
+  (let ((map (jinavojt-body-map body))
+        (heading (jinavojt-body-heading body))
+        (loc (jinavojt-body-location body)))
+       (what-is-on-loc (loc-on-right loc heading))))

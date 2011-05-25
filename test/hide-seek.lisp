@@ -3,7 +3,10 @@
 
 (load "src/hide-seek.lisp")
 
+
+;;; ===============================================================
 ;;; HELPERS
+;;; ===============================================================
 
 ; Run given lambda couple of times (stress test)
 (defun stress (times fn)
@@ -13,7 +16,15 @@
 (defun fail_ (msg)
   (assert-true nil msg))
 
-;;; TESTS
+
+;;; ===============================================================
+;;; BASIC LOGIC UNIT TESTSloc-on-left
+;;; - when see person, always go to pyky him
+;;; - if obstacle, turn left/right (and do not turn back)
+;;; - every forward step - check left/right (and turn back if no person)
+;;; - sometimes change direction (not return from checking)
+;;; ===============================================================
+
 (define-test should-pyky-when-heading-to-person
   (assert-equal 'PYKY
 		(decide (make-jinavojt-body) (list 'PERSON))))
@@ -103,9 +114,32 @@
   (assert-false (decide-see-person? (list NIL NIL NIL NIL NIL NIL NIL 'WALL)))
 )
 
-;;; FEATURES
-; - when see person, always go to pyky him
-; - if obstacle, turn left/right (and do not turn back)
-; - every forward step - check left/right (and turn back if no person)
 
-; let's not turn back when checking (change direction) - sometimes
+;;; ===============================================================
+;;; loc-on-left
+;;; loc-on-right
+;;; ===============================================================
+
+(define-test loc-on-*-should-return-location-object
+  (assert-true (xy-p (loc-on-left (@ 3 3) '(0 1))))
+  (assert-true (xy-p (loc-on-right (@ 2 3) '(1 0))))
+)
+
+(define-test loc-on-*-should-not-mute-original-location
+  (let* ((orig-loc (@ 4 5))
+         (new-loc (loc-on-left orig-loc '(0 1))))
+    (assert-false (eq new-loc orig-loc)))
+  (let* ((orig-loc (@ 4 5))
+         (new-loc (loc-on-right orig-loc '(1 0))))
+    (assert-false (eq new-loc orig-loc)))
+)
+
+(define-test loc-on-left
+  (assert-equal '(2 4) (loc-on-left (@ 3 4) '(0 1)))
+  (assert-equal '(2 4) (loc-on-left (@ 2 3) '(1 0)))
+)
+
+(define-test loc-on-right
+  (assert-equal '(6 5) (loc-on-right (@ 5 5) '(0 1)))
+  (assert-equal '(5 4) (loc-on-right (@ 5 5) '(1 0)))
+)
