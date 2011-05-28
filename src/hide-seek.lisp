@@ -91,25 +91,17 @@
     ((equal heading '(0 -1)) '(-1 0))
     ((equal heading '(-1 0)) '(0 1))))
 
-; move location one step forward in given heading (orientation)
-(defun move-location (location heading)
-  (setq location (copy-xy location))
-  (setf (xy-x location) (+ (xy-x location) (car heading)))
-  (setf (xy-y location) (+ (xy-y location) (cadr heading)))
-  (values location)
-)
-
 ; next location on my left
 ; location = current location
 ; heading = current orientation
 (defun loc-on-left (location heading)
-  (move-location location (rotate-heading-left heading)))
+  (xy-add location (rotate-heading-left heading)))
 
 ; next location on my right
 ; location = current location
 ; heading = current orientation
 (defun loc-on-right (location heading)
-  (move-location location (rotate-heading-right heading)))
+  (xy-add location (rotate-heading-right heading)))
 
 (defun what-is-on-left? (body)
   (let ((map (jinavojt-body-map body))
