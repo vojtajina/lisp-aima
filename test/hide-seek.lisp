@@ -195,3 +195,77 @@
 		   (remove-heading-from-list NIL '(0 -1)))
 )
 
+
+;;; ===============================================================
+;;; HIGHER LEVEL TESTS
+;;; using learned (mapped knowledge) - SEEN, NIL, HOPE
+;;; ===============================================================
+
+(defun fake-step (env action)
+  (setq agent (first (environment-agents env)))
+  (setf (agent-percept agent) (get-percept env agent))
+  (setf (agent-action agent) action)
+  (learn (first (agent-percept agent)) (rest (agent-percept agent)))
+  (update-fn env)
+  (setf (agent-score agent) (performance-measure env agent))
+)
+
+(defun fake-decide (env)
+  (setq agent (first (environment-agents env))
+        percept (get-percept env agent)
+	body (first percept)
+	perc (rest percept))
+  (learn body perc)
+  (decide body perc)
+)
+
+(defun create-fake-env (id)
+  (case id
+    ; env for testing facing obstacle + HOPE
+    (1 (setq env (make-hs-world :max-steps 10
+				:start (@ 3 1)
+				:bspec '((at edge WALL)
+					 (at (2 3) BUSH)
+					 (at (4 3) BUSH)
+					 (at (3 2) BUSH)))))
+    ; env for testing facing obstacle + SEEN
+    (2 (setq env (make-hs-world :max-steps 10
+				:start (@ 2 2)
+				:bspec '((at edge WALL)
+					 (at (1 2) BUSH)
+					 (at (3 2) BUSH)
+					 (at (2 3) BUSH)))))
+  )
+  (initialize env)
+  (setq agent (first (environment-agents env)))
+  (setf (agent-body-heading (agent-body agent)) (@ 0 1))
+  (values env)
+)
+
+(define-test should-always-turn-left-when-facing-obstacle-and-hope-is-on-left
+  (stress 10 (lambda ()
+    (setq env (create-fake-env 1))
+    (fake-step env 'LEFT)
+    (fake-step env 'FORW)
+    (assert-equal 'TURNRIGHT (fake-decide env))))
+  ;(display-environment env)
+)
+
+(define-test should-always-turn-right-when-facing-obstacle-and-hope-is-on-right
+  (stress 10 (lambda ()
+    (setq env (create-fake-env 1))
+    (fake-step env 'RIGHT)
+    (fake-step env 'FORW)
+    (assert-equal 'TURNLEFT (fake-decide env)))))
+
+(define-test should-always-turn-left-when-facing-obstacle-and-seen-is-on-right
+  (stress 10 (lambda ()
+    (setq env (create-fake-env 2))
+    (fake-step env 'TURNLEFT)    
+    (assert-equal 'TURNLEFT (fake-decide env)))))
+
+(define-test should-always-turn-right-when-facing-obstacle-and-seen-is-on-left
+  (stress 10 (lambda ()
+    (setq env (create-fake-env 2))
+    (fake-step env 'TURNRIGHT)
+    (assert-equal 'TURNRIGHT (fake-decide env)))))

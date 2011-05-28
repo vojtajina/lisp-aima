@@ -68,9 +68,19 @@
 		('NO-TURN-LEFT 'TURNRIGHT)
 		('BACK-LEFT (prog1 'TURNLEFT (set-in-action body NIL)))
 		('BACK-RIGHT (prog1 'TURNRIGHT (set-in-action body NIL)))
-		(otherwise (if (= 0 (random 2))
-	          (prog1 'TURNLEFT (set-in-action body 'NO-TURN-RIGHT))
-		  (prog1 'TURNRIGHT (set-in-action body 'NO-TURN-LEFT)))))
+		(otherwise (cond
+		  ; todo: local var for what-is-on-* calls
+		  ((equal (what-is-on-left? body) 'HOPE)
+		   (prog1 'TURNLEFT (set-in-action body 'NO-TURN-RIGHT)))
+		  ((equal (what-is-on-right? body) 'HOPE)
+		   (prog1 'TURNRIGHT (set-in-action body 'NO-TURN-LEFT)))
+		  ((equal (what-is-on-left? body) 'SEEN)
+		   (prog1 'TURNRIGHT (set-in-action body 'NO-TURN-LEFT)))
+		  ((equal (what-is-on-right? body) 'SEEN)
+		   (prog1 'TURNLEFT (set-in-action body 'NO-TURN-RIGHT)))
+		  ((= 0 (random 2))
+	           (prog1 'TURNLEFT (set-in-action body 'NO-TURN-RIGHT)))
+		  (T  (prog1 'TURNRIGHT (set-in-action body 'NO-TURN-LEFT))))))
 	      ; facing to something else
 	      (prog1 'FORW (set-in-action body 'CLEAN)))))
 )
@@ -86,6 +96,7 @@
 
 ; rotate 2d orientation (heading) to left
 ; (declarative - not tested)
+; todo: use tleft
 (defun rotate-heading-left (heading)
   (cond
     ((equal heading '(0 1)) '(-1 0))
@@ -95,6 +106,7 @@
 
 ; rotate 2d orientation (heading) to right
 ; (declarative - not tested)
+; todo: use tright
 (defun rotate-heading-right (heading)
   (cond
     ((equal heading '(0 1)) '(1 0))
@@ -133,13 +145,14 @@
 ; todo: when bush, store directions already seen, when all, change into SEEN
 (defun what-is-on-loc? (location map heading)
   (setq item (aref map (xy-x location) (xy-y location)))
-  (if (listp item)
-      (if (find-equal heading item)
-	  'HOPE
-	  'SEEN)
-      item))
+  (cond
+    ((null item) NIL)
+    ((listp item)
+     (if (find-equal heading item) 'HOPE 'SEEN))
+    (T item)))
 
 ; find, but using equal for comparing
+; todo: could we use member instead ?
 (defun find-equal (item list)
   (cond ((null (first list)) NIL)
 	((equal item (first list)) T)
@@ -174,6 +187,7 @@
 
 ; removes given heading (direction) from list and returns it
 ; if list NIL inits new one
+; todo: should change empty list into SEEN
 (defun remove-heading-from-list (list heading)
   (when (null list)
         (setq list (list '(0 1) '(0 -1) '(1 0) '(-1 0))))
