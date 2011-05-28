@@ -15,13 +15,24 @@
 
 (defun create-map (x y)
   (setq map (make-array (list x y)))
+  (loop for i from 0 below x do
+    (progn (setf (aref map i 0) 'SEEN)
+	   (setf (aref map i (- y 1)) 'SEEN)))
+
+  (loop for i from 1 below (- y 1) do
+    (progn (setf (aref map 0 i) 'SEEN)
+	   (setf (aref map (- x 1) i) 'SEEN)))
   (values map)
 )
 
 (defun jinavojt-program (percept)
   (print (jinavojt-body-in-action (first percept)))
   (sleep 1)
-  (decide (first percept) (rest percept))
+  (setq body (first percept)
+	perc (rest percept))
+  ; todo: ignore learn, when last step was forw
+  (learn body perc)
+  (decide body perc)
 )
 
 ; the main logic is here, this function is unit tested...
@@ -106,11 +117,70 @@
 (defun what-is-on-left? (body)
   (let ((map (jinavojt-body-map body))
         (heading (jinavojt-body-heading body))
-        (loc (jinavojt-body-location body)))
-       (what-is-on-loc (loc-on-left loc heading))))
+        (loc (jinavojt-body-loc body)))
+       (what-is-on-loc? (loc-on-left loc heading) map (rotate-heading-left heading))))
 
 (defun what-is-on-right? (body)
   (let ((map (jinavojt-body-map body))
         (heading (jinavojt-body-heading body))
-        (loc (jinavojt-body-location body)))
-       (what-is-on-loc (loc-on-right loc heading))))
+        (loc (jinavojt-body-loc body)))
+       (what-is-on-loc? (loc-on-right loc heading) map (rotate-heading-right heading))))
+
+; returns
+; - NIL = unknown
+; - HOPE = bush, not seen from this direction yet
+; - SEEN = wall, seen bush
+; todo: when bush, store directions already seen, when all, change into SEEN
+(defun what-is-on-loc? (location map heading)
+  (setq item (aref map (xy-x location) (xy-y location)))
+  (if (listp item)
+      (if (find-equal heading item)
+	  'HOPE
+	  'SEEN)
+      item))
+
+; find, but using equal for comparing
+(defun find-equal (item list)
+  (cond ((null (first list)) NIL)
+	((equal item (first list)) T)
+	(T (find-equal item (rest list)))))
+
+; remove, but using equal for comparing
+(defun remove-equal (item list)
+  (setq first-item (first list)
+	rest-items (rest list))
+  (cond
+    ((null first-item) NIL)
+    ((equal first-item item) (remove-equal item rest-items))
+    (T (cons first-item (remove-equal item rest-items)))))
+  
+; remember first seen object
+(defun learn (body percept)
+  (setq map (jinavojt-body-map body)
+	location (jinavojt-body-loc body)
+	heading (jinavojt-body-heading body))
+  (multiple-value-bind (object location)
+                       (first-seen-object-and-loc location heading percept)
+  (cond
+    ((or (equal object 'WALL) (equal object 'PERSON))
+     (setf (aref map (xy-x location) (xy-y location)) 'SEEN))
+    ((equal object 'BUSH)
+     (progn
+     (let ((old-map (aref map (xy-x location) (xy-y location))))
+          (when (not (equal old-map 'SEEN))
+	        (setf (aref map (xy-x location) (xy-y location))
+	        (remove-heading-from-list old-map heading)))))))))
+
+
+; removes given heading (direction) from list and returns it
+; if list NIL inits new one
+(defun remove-heading-from-list (list heading)
+  (when (null list)
+        (setq list (list '(0 1) '(0 -1) '(1 0) '(-1 0))))
+  (remove-equal heading list))
+
+(defun first-seen-object-and-loc (location heading percept)
+  (setq first-seen (first percept))
+  (if (null first-seen)
+      (first-seen-object-and-loc (xy-add location heading) heading (rest percept))
+      (values first-seen (xy-add location heading))))

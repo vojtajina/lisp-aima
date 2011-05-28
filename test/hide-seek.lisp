@@ -18,7 +18,7 @@
 
 
 ;;; ===============================================================
-;;; BASIC LOGIC UNIT TESTSloc-on-left
+;;; BASIC LOGIC UNIT TESTS
 ;;; - when see person, always go to pyky him
 ;;; - if obstacle, turn left/right (and do not turn back)
 ;;; - every forward step - check left/right (and turn back if no person)
@@ -143,3 +143,55 @@
   (assert-equal '(6 5) (loc-on-right (@ 5 5) '(0 1)))
   (assert-equal '(5 4) (loc-on-right (@ 5 5) '(1 0)))
 )
+
+
+;;; ===============================================================
+;;; MAPPING
+;;; what-is-on-loc?
+;;; learn
+;;; ===============================================================
+
+(define-test what-is-on-loc-should-set-the-borders-to-obstacles
+  (setq map (jinavojt-body-map (make-jinavojt-body)))
+  ; assuming 10x10
+  (assert-equal 'SEEN (what-is-on-loc? (@ 0 0) map NIL))
+  (assert-equal 'SEEN (what-is-on-loc? (@ 5 0) map NIL))
+  (assert-equal 'SEEN (what-is-on-loc? (@ 0 8) map NIL))
+  (assert-equal 'SEEN (what-is-on-loc? (@ 9 9) map NIL))
+  (assert-equal 'SEEN (what-is-on-loc? (@ 9 3) map NIL))
+)
+
+(define-test learn-should-learn-wall
+  (setq body (make-jinavojt-body :loc (@ 1 1) :heading '(1 0)))
+  (learn body (list NIL NIL 'WALL))
+  (assert-equal 'SEEN (aref (jinavojt-body-map body) 4 1)))
+
+(define-test learn-should-learn-person
+  (setq body (make-jinavojt-body :loc (@ 1 2) :heading '(0 1)))
+  (learn body (list NIL NIL NIL 'PERSON))
+  (assert-equal 'SEEN (aref (jinavojt-body-map body) 1 6)))
+
+(define-test learn-should-learn-bush
+  (setq body (make-jinavojt-body :loc (@ 8 3) :heading '(0 -1)))
+  (learn body (list NIL 'BUSH))
+  (setf (jinavojt-body-loc body) (@ 7 1))
+  (assert-equal 'HOPE (what-is-on-left? body))
+  (setf (jinavojt-body-loc body) (@ 9 1))
+  (assert-equal 'HOPE (what-is-on-right? body))
+  (setf (jinavojt-body-loc body) (@ 8 2))
+  (setf (jinavojt-body-heading body) '(1 0))
+  (assert-equal 'SEEN (what-is-on-right? body))
+)
+
+(define-test remove-heading-from-list
+  (unordered-equal (list '(0 -1) '(1 0))
+		   (remove-heading-from-list (list '(0 1) '(0 -1) '(1 0)) '(0 1)))
+  (unordered-equal (list '(0 1) '(0 -1))
+		   (remove-heading-from-list (list '(1 0) '(0 1) '(0 -1)) '(1 0)))
+)
+
+(define-test remove-heading-from-list-should-init-if-null
+  (unordered-equal (list '(0 1) '(1 0) '(-1 0))
+		   (remove-heading-from-list NIL '(0 -1)))
+)
+
