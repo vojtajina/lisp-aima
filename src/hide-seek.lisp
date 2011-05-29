@@ -53,9 +53,17 @@
 	     (prog1 'TURNRIGHT (set-in-action body 'BACK-LEFT)))
 	    ; CLEAN - time to check left / right
 	    ((equal (jinavojt-body-in-action body) 'CLEAN)
-	     (if (= 0 (random 2))
-	      (prog1 'TURNLEFT (set-in-action body 'BACK-RIGHT))
-	      (prog1 'TURNRIGHT (set-in-action body 'BACK-LEFT))))
+	     (cond
+	       ; there is a SEEN on left, check RIGHT
+	       ((equal (what-is-on-left? body) 'SEEN)
+		(prog1 'TURNRIGHT (set-in-action body 'BACK-LEFT)))
+	       ; there is a SEEN on right, check LEFT
+	       ((equal (what-is-on-right? body) 'SEEN)
+		(prog1 'TURNLEFT (set-in-action body 'BACK-RIGHT)))
+	       ; just random - check left/right
+	       (T (if (= 0 (random 2))
+	          (prog1 'TURNLEFT (set-in-action body 'BACK-RIGHT))
+	          (prog1 'TURNRIGHT (set-in-action body 'BACK-LEFT))))))
 	    ; NIL or in checking action - return back, or keep new direction
 	    (T (if (= 0 (random 3))
 	      ; let's keep this new direction
