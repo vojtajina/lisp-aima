@@ -245,6 +245,12 @@
 				:start (@ 3 2)
 				:bspec '((at edge WALL)
 					 (at (3 3) BUSH)))))
+    ; env for testing facing free + SEEN on both sides
+    (5 (setq env (make-hs-world :max-steps 10
+				:start (@ 3 2)
+				:bspec '((at edge WALL)
+					 (at (2 2) BUSH)
+					 (at (4 2) BUSH)))))
   )
   (initialize env)
   (setq agent (first (environment-agents env)))
@@ -309,3 +315,15 @@
     (setf (jinavojt-body-in-action (agent-body (first (environment-agents env))))
 	  'CLEAN)
     (assert-equal 'TURNRIGHT (fake-decide env)))))
+
+(define-test should-never-check-left-or-right-when-both-seen
+  (stress 10 (lambda ()
+    (setq env (create-fake-env 5))
+    (fake-step env 'TURNRIGHT)
+    (fake-step env 'TURNRIGHT)
+    (fake-step env 'TURNRIGHT)
+    (fake-step env 'TURNRIGHT)
+    (setf (jinavojt-body-in-action (agent-body (first (environment-agents env))))
+	  'CLEAN)
+    (assert-equal 'FORW (fake-decide env)))))
+

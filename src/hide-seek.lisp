@@ -54,6 +54,10 @@
 	    ; CLEAN - time to check left / right
 	    ((equal (jinavojt-body-in-action body) 'CLEAN)
 	     (cond
+	       ; SEEN on both left, right - no checking
+	       ((and (equal (what-is-on-left? body) 'SEEN)
+		     (equal (what-is-on-right? body) 'SEEN))
+		(prog1 'FORW (set-in-action body 'CLEAN)))
 	       ; there is a SEEN on left, check RIGHT
 	       ((equal (what-is-on-left? body) 'SEEN)
 		(prog1 'TURNRIGHT (set-in-action body 'BACK-LEFT)))
