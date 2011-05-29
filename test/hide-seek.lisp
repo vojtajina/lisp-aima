@@ -235,6 +235,11 @@
 					 (at (1 2) BUSH)
 					 (at (3 2) BUSH)
 					 (at (2 3) BUSH)))))
+    ; env for testing facing free + HOPE
+    (3 (setq env (make-hs-world :max-steps 10
+				:start (@ 4 1)
+				:bspec '((at edge WALL)
+					 (at (4 2) BUSH)))))
   )
   (initialize env)
   (setq agent (first (environment-agents env)))
@@ -269,3 +274,17 @@
     (setq env (create-fake-env 2))
     (fake-step env 'TURNRIGHT)
     (assert-equal 'TURNRIGHT (fake-decide env)))))
+
+(define-test should-always-turn-right-when-facing-free-and-hope-is-on-right
+  (stress 10 (lambda ()
+    (setq env (create-fake-env 3))
+    (fake-step env 'LEFT)
+    (fake-step env 'FORW)
+    (assert-equal 'TURNRIGHT (fake-decide env)))))
+
+(define-test should-always-turn-left-when-facing-free-and-hope-is-on-left
+  (stress 10 (lambda ()
+    (setq env (create-fake-env 3))
+    (fake-step env 'RIGHT)
+    (fake-step env 'FORW)
+    (assert-equal 'TURNLEFT (fake-decide env)))))

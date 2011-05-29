@@ -39,25 +39,35 @@
 (defun decide (body percept)
   (setq first-seen (first percept))
   (if (null first-seen)
-      ; can see list (couple of nils and then object
+      ; can see free space - not facing directly to anything
       (if (decide-see-person? percept)
 	  ; can see person - ignore everything, go for it
 	  (prog1 'FORW (set-in-action body NIL))
-
 	  ; can't see any person
-          (case (jinavojt-body-in-action body)
-	    ; last step was forward, let's check left/right
-	    ('CLEAN (if (= 0 (random 2))
+	  (cond
+	    ; there is a HOPE on left, check it
+	    ((equal (what-is-on-left? body) 'HOPE)
+	     (prog1 'TURNLEFT (set-in-action body 'BACK-RIGHT)))
+	    ; there is a HOPE on right, check it
+	    ((equal (what-is-on-right? body) 'HOPE)
+	     (prog1 'TURNRIGHT (set-in-action body 'BACK-LEFT)))
+	    ; CLEAN - time to check left / right
+	    ((equal (jinavojt-body-in-action body) 'CLEAN)
+	     (if (= 0 (random 2))
 	      (prog1 'TURNLEFT (set-in-action body 'BACK-RIGHT))
 	      (prog1 'TURNRIGHT (set-in-action body 'BACK-LEFT))))
-	    (otherwise (if (= 0 (random 3))
+	    ; NIL or in checking action - return back, or keep new direction
+	    (T (if (= 0 (random 3))
+	      ; let's keep this new direction
 	      (prog1 'FORW (set-in-action body 'CLEAN))
 	      (case (jinavojt-body-in-action body)
+		; turn back from right checking
 	        ('BACK-LEFT (prog1 'TURNLEFT (set-in-action body NIL)))
+		; turn back from left checking
 		('BACK-RIGHT (prog1 'TURNRIGHT (set-in-action body NIL)))
 		(otherwise (prog1 'FORW (set-in-action body 'CLEAN))))))))
 
-      ; facing to object directly
+      ; facing directly to some object
       (if (eq first-seen 'PERSON)
 	  ; facing to person
 	  'PYKY
