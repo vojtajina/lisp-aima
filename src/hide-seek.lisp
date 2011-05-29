@@ -1,4 +1,5 @@
 (load "lib/aima/aima.fas")
+;(load "src/load-aima.lisp") ; load not compiled aima
 (load "src/hide-seek-assignments.lisp")
 
 (defstructure (jinavojt-agent
@@ -26,8 +27,7 @@
 )
 
 (defun jinavojt-program (percept)
-  (print (jinavojt-body-in-action (first percept)))
-  (sleep 1)
+  ;(sleep 1)
   (setq body (first percept)
 	perc (rest percept))
   ; todo: ignore learn, when last step was forw
