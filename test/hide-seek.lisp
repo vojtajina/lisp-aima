@@ -106,12 +106,12 @@
       (otherwise (fail_ "Should check left or right after each forw step")))))
 )
 
-(define-test decide-see-person?
-  (assert-true (decide-see-person? (list NIL 'PERSON)))
-  (assert-true (decide-see-person? (list NIL NIL NIL 'PERSON)))
-  (assert-false (decide-see-person? (list NIL NIL 'WALL)))
-  (assert-false (decide-see-person? (list NIL 'BUSH)))
-  (assert-false (decide-see-person? (list NIL NIL NIL NIL NIL NIL NIL 'WALL)))
+(define-test see-person?
+  (assert-true (see-person? (list NIL 'PERSON)))
+  (assert-true (see-person? (list NIL NIL NIL 'PERSON)))
+  (assert-false (see-person? (list NIL NIL 'WALL)))
+  (assert-false (see-person? (list NIL 'BUSH)))
+  (assert-false (see-person? (list NIL NIL NIL NIL NIL NIL NIL 'WALL)))
 )
 
 

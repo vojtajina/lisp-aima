@@ -40,7 +40,7 @@
   (setq first-seen (first percept))
   (if (null first-seen)
       ; can see free space - not facing directly to anything
-      (if (decide-see-person? percept)
+      (if (see-person? percept)
 	  ; can see person - ignore everything, go for it
 	  (prog1 'FORW (set-in-action body NIL))
 	  ; can't see any person
@@ -106,10 +106,10 @@
 (defun set-in-action (body action)
   (setf (jinavojt-body-in-action body) action))
 
-(defun decide-see-person? (percept)
+(defun see-person? (percept)
   (let ((first-seen (first percept)))
   (if (null first-seen)
-	    (decide-see-person? (rest percept))
+	    (see-person? (rest percept))
             (if (eq first-seen 'PERSON) T NIL))))
 
 ; rotate 2d orientation (heading) to left
