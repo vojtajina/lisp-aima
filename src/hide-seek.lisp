@@ -95,24 +95,14 @@
             (if (eq first-seen 'PERSON) T NIL))))
 
 ; rotate 2d orientation (heading) to left
-; (declarative - not tested)
-; todo: use tleft
+; wrapper for tleft (no mutation)
 (defun rotate-heading-left (heading)
-  (cond
-    ((equal heading '(0 1)) '(-1 0))
-    ((equal heading '(1 0)) '(0 1))
-    ((equal heading '(0 -1)) '(1 0))
-    ((equal heading '(-1 0)) '(0 -1))))
+  (tleft (copy-xy heading)))
 
 ; rotate 2d orientation (heading) to right
-; (declarative - not tested)
-; todo: use tright
+; wrapper for tright (no mutation)
 (defun rotate-heading-right (heading)
-  (cond
-    ((equal heading '(0 1)) '(1 0))
-    ((equal heading '(1 0)) '(0 -1))
-    ((equal heading '(0 -1)) '(-1 0))
-    ((equal heading '(-1 0)) '(0 1))))
+  (tright (copy-xy heading)))
 
 ; next location on my left
 ; location = current location
