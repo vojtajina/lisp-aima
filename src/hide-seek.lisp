@@ -46,10 +46,10 @@
 	  ; can't see any person
 	  (cond
 	    ; there is a HOPE on left, check it
-	    ((equal (what-is-on-left? body) 'HOPE)
+	    ((hope-on-left? body)
 	     (prog1 'TURNLEFT (set-in-action body 'BACK-RIGHT)))
 	    ; there is a HOPE on right, check it
-	    ((equal (what-is-on-right? body) 'HOPE)
+	    ((hope-on-right? body)
 	     (prog1 'TURNRIGHT (set-in-action body 'BACK-LEFT)))
 	    ; CLEAN - time to check left / right
 	    ((equal (jinavojt-body-in-action body) 'CLEAN)
@@ -92,9 +92,9 @@
 		('BACK-RIGHT (prog1 'TURNRIGHT (set-in-action body NIL)))
 		(otherwise (cond
 		  ; todo: local var for what-is-on-* calls
-		  ((equal (what-is-on-left? body) 'HOPE)
+		  ((hope-on-left? body)
 		   (prog1 'TURNLEFT (set-in-action body 'NO-TURN-RIGHT)))
-		  ((equal (what-is-on-right? body) 'HOPE)
+		  ((hope-on-right? body)
 		   (prog1 'TURNRIGHT (set-in-action body 'NO-TURN-LEFT)))
 		  ((equal (what-is-on-left? body) 'SEEN)
 		   (prog1 'TURNRIGHT (set-in-action body 'NO-TURN-LEFT)))
@@ -138,18 +138,45 @@
 (defun loc-on-right (location heading)
   (xy-add location (rotate-heading-right heading)))
 
+; returns what is on NEXT place on left (HOPE/SEEN/NIL)
 (defun what-is-on-left? (body)
   (let ((map (jinavojt-body-map body))
         (heading (jinavojt-body-heading body))
         (loc (jinavojt-body-loc body)))
        (what-is-on-loc? (loc-on-left loc heading) map (rotate-heading-left heading))))
 
+; returns what is on NEXT place on right (HOPE/SEEN/NIL)
 (defun what-is-on-right? (body)
   (let ((map (jinavojt-body-map body))
         (heading (jinavojt-body-heading body))
         (loc (jinavojt-body-loc body)))
        (what-is-on-loc? (loc-on-right loc heading) map (rotate-heading-right heading))))
 
+; is HOPE on first known object in left direction ?
+(defun hope-on-left? (body)
+  (let ((map (jinavojt-body-map body))
+	(heading (object-heading body))
+	(loc (object-loc body)))
+    (equal 'HOPE (first-known-in-direction (loc-on-left loc heading)
+					   map
+					   (rotate-heading-left heading)))))
+
+; is HOPE on first known object in right direction ?
+(defun hope-on-right? (body)
+  (let ((map (jinavojt-body-map body))
+	(heading (object-heading body))
+	(loc (object-loc body)))
+    (equal 'HOPE (first-known-in-direction (loc-on-right loc heading)
+					   map
+					   (rotate-heading-right heading)))))
+
+; returns first known (SEEN/HOPE) in given direction
+(defun first-known-in-direction (location map heading)
+  (let ((next (what-is-on-loc? location map heading)))
+	(if (null next)
+          (first-known-in-direction (xy-add location heading) map heading)
+	  next)))
+      
 ; returns
 ; - NIL = unknown
 ; - HOPE = bush, not seen from this direction yet

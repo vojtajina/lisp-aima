@@ -195,6 +195,16 @@
 		   (remove-heading-from-list NIL '(0 -1)))
 )
 
+(define-test hope-on-*-should-check-first-known-in-direction
+  (setq body (make-jinavojt-body)
+	map (jinavojt-body-map body))
+  (setf (aref map 1 1) 'HOPE)
+  (setf (object-loc body) (@ 5 1))
+  (setf (object-heading body) (@ 0 1))
+
+  (assert-true (hope-on-left? body))
+  (assert-false (hope-on-right? body))
+)
 
 ;;; ===============================================================
 ;;; HIGHER LEVEL TESTS
@@ -251,6 +261,12 @@
 				:bspec '((at edge WALL)
 					 (at (2 2) BUSH)
 					 (at (4 2) BUSH)))))
+    ; env for testing HOPE on next known on left/right
+    (6 (setq env (make-hs-world :max-steps 10
+				:start (@ 4 1)
+				:bspec '((at edge WALL)
+					 (at (4 2) BUSH)))))
+
   )
   (initialize env)
   (setq agent (first (environment-agents env)))
@@ -327,3 +343,22 @@
 	  'CLEAN)
     (assert-equal 'FORW (fake-decide env)))))
 
+(define-test should-always-check-when-hope-on-further-right
+  ; even if hope is not on next, could be further
+  (stress 10 (lambda ()
+    (setq env (create-fake-env 6))
+    (fake-step env 'LEFT)
+    (fake-step env 'LEFT)
+    (fake-step env 'LEFT)
+    (fake-step env 'FORW)
+    (assert-equal 'TURNRIGHT (fake-decide env)))))
+
+(define-test should-always-check-when-hope-on-further-left
+  ; even if hope is not on next, could be further
+  (stress 10 (lambda ()
+    (setq env (create-fake-env 6))
+    (fake-step env 'RIGHT)
+    (fake-step env 'RIGHT)
+    (fake-step env 'RIGHT)
+    (fake-step env 'FORW)
+    (assert-equal 'TURNLEFT (fake-decide env)))))
